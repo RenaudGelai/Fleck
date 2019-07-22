@@ -18,6 +18,7 @@ namespace Fleck
         EndPoint LocalEndPoint { get; }
         int? OutgoingQueueSizeLimit { get; set; }
 
+        ISocket Accept();
         Task<ISocket> Accept(Action<ISocket> callback, Action<Exception> error);
         Task Send(byte[] buffer, Action callback, Action<Exception> error);
         Task<int> Receive(byte[] buffer, Action<int> callback, Action<Exception> error, int offset = 0);
