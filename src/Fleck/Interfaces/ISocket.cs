@@ -17,6 +17,7 @@ namespace Fleck
         bool NoDelay { get; set; }
         EndPoint LocalEndPoint { get; }
 
+        ISocket Accept();
         Task<ISocket> Accept(Action<ISocket> callback, Action<Exception> error);
         Task Send(byte[] buffer, Action callback, Action<Exception> error);
         Task<int> Receive(byte[] buffer, Action<int> callback, Action<Exception> error, int offset = 0);
