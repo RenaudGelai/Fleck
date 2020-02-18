@@ -8,7 +8,7 @@ namespace Fleck
 {
   public class WebSocketConnection : IWebSocketConnection
   {
-    public WebSocketConnection(ISocket socket, Action<IWebSocketConnection> initialize, Func<byte[], WebSocketHttpRequest> parseRequest, Func<WebSocketHttpRequest, IHandler> handlerFactory, Func<IEnumerable<string>, string> negotiateSubProtocol)
+    public WebSocketConnection(ISocket socket, Action<IWebSocketConnection> initialize, Func<byte[], WebSocketHttpRequest> parseRequest, Func<WebSocketHttpRequest, IHandler> handlerFactory, Func<IEnumerable<string>, string> negotiateSubProtocol, IClientIpPResolver Resolver= null)
     {
       Socket = socket;
       OnOpen = () => { };
@@ -22,6 +22,7 @@ namespace Fleck
       _handlerFactory = handlerFactory;
       _parseRequest = parseRequest;
       _negotiateSubProtocol = negotiateSubProtocol;
+      this.IpResolver = Resolver;
     }
 
     public ISocket Socket { get; set; }
@@ -53,7 +54,9 @@ namespace Fleck
 
     public IWebSocketConnectionInfo ConnectionInfo { get; private set; }
 
-    public bool IsAvailable {
+    public IClientIpPResolver IpResolver { get; set; }
+
+        public bool IsAvailable {
       get { return !_closing && !_closed && Socket.Connected; }
     }
 
@@ -136,7 +139,7 @@ namespace Fleck
       if (Handler == null)
         return;
       var subProtocol = _negotiateSubProtocol(request.SubProtocols);
-      ConnectionInfo = WebSocketConnectionInfo.Create(request, Socket.RemoteIpAddress, Socket.RemotePort, subProtocol);
+      ConnectionInfo = WebSocketConnectionInfo.Create(request, Socket.RemoteIpAddress, Socket.RemotePort, subProtocol, IpResolver);
 
       _initialize(this);
 

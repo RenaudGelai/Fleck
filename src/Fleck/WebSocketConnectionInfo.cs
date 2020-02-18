@@ -5,12 +5,13 @@ using System.Text.RegularExpressions;
 
 namespace Fleck
 {
+    
     public class WebSocketConnectionInfo : IWebSocketConnectionInfo
     {
         const string CookiePattern = @"((;)*(\s)*(?<cookie_name>[^=]+)=(?<cookie_value>[^\;]+))+";
         private static readonly Regex CookieRegex = new Regex(CookiePattern, RegexOptions.Compiled);
 
-        public static WebSocketConnectionInfo Create(WebSocketHttpRequest request, string clientIp, int clientPort, string negotiatedSubprotocol)
+        public static WebSocketConnectionInfo Create(WebSocketHttpRequest request, string clientIp, int clientPort, string negotiatedSubprotocol, IClientIpPResolver IpResolver = null)
         {
             var info = new WebSocketConnectionInfo
                            {
@@ -22,7 +23,13 @@ namespace Fleck
                                ClientPort = clientPort,
                                NegotiatedSubProtocol = negotiatedSubprotocol,
                                Headers = new Dictionary<string, string>(request.Headers, System.StringComparer.InvariantCultureIgnoreCase)
-                           };
+                            };
+
+            if (IpResolver != null)
+            {
+                info.ClientIpAddress = IpResolver.GetClientIP(request, clientIp, clientPort, negotiatedSubprotocol);
+            }
+
             var cookieHeader = request["Cookie"];
 
             if (cookieHeader != null)

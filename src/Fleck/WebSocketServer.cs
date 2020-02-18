@@ -11,6 +11,11 @@ using System.Threading;
 
 namespace Fleck
 {
+    public interface IClientIpPResolver
+    {
+        string GetClientIP(WebSocketHttpRequest request, string clientIp, int clientPort, string negotiatedSubprotocol);
+    }
+
     public class WebSocketServer : IWebSocketServer
     {
         private readonly string _scheme;
@@ -53,6 +58,7 @@ namespace Fleck
         public SslProtocols EnabledSslProtocols { get; set; }
         public IEnumerable<string> SupportedSubProtocols { get; set; }
         public bool RestartAfterListenError { get; set; }
+        public IClientIpPResolver IpResolver { get; set; }
         /// <summary>
         /// Defines the limit (in bytes) of the outgoing queue of a connection (queuing is only used for secure connections). If reached, the connection is closed
         /// </summary>
@@ -178,7 +184,9 @@ namespace Fleck
                                                  b => connection.OnBinary(b),
                                                  b => connection.OnPing(b),
                                                  b => connection.OnPong(b)),
-                s => SubProtocolNegotiator.Negotiate(SupportedSubProtocols, s));
+                s => SubProtocolNegotiator.Negotiate(SupportedSubProtocols, s),
+                IpResolver
+                );
 
             if (IsSecure)
             {
